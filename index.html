@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <title>Проект "Комменты"</title>
@@ -65,7 +65,42 @@
 
   <script>
     "use strict";
-    // Код писать здесь
+    const commentsElement = document.querySelector(".comments");
+    const addNameInput = document.querySelector(".add-form-name");
+    const addFormComment = document.querySelector(".add-form-name");
+    const addformButton = document.querySelector(".add-form-button");
+    const getCurrentTime = () => {
+      return new Intl.DateTimeFormat("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date());
+    };
+
+    addformButton.addEventListener("click", () => {
+      const liElement = document.createElement("li");
+      liElement.className = "comment";
+      liElement.innerHTML = `
+          <div class="comment-header">
+            <div>Варвара Н.</div>
+            <div>${getCurrentTime()}</div>
+          </div>
+          <div class="comment-body">
+            <div class="comment-text">
+              Мне нравится как оформлена эта страница! ❤
+            </div>
+          </div>
+          <div class="comment-footer">
+            <div class="likes">
+              <span class="likes-counter">0</span>
+              <button class="like-button -active-like"></button>
+            </div>
+          </div>`;
+      commentsElement.appendChild(liElement);
+    });
+
     console.log("It works!");
   </script>
 </html>
