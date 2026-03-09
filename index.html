@@ -67,7 +67,7 @@
     "use strict";
     const commentsElement = document.querySelector(".comments");
     const addNameInput = document.querySelector(".add-form-name");
-    const addFormComment = document.querySelector(".add-form-name");
+    const addFormComment = document.querySelector(".add-form-text");
     const addformButton = document.querySelector(".add-form-button");
     const getCurrentTime = () => {
       return new Intl.DateTimeFormat("ru-RU", {
@@ -80,24 +80,34 @@
     };
 
     addformButton.addEventListener("click", () => {
+      addNameInput.classList.remove("error");
+      addFormComment.classList.remove("error");
+      if (addNameInput.value === "" || addFormComment.value === "") {
+        addNameInput.classList.add("error");
+        addFormComment.classList.add("error");
+        return;
+      }
+
       const liElement = document.createElement("li");
       liElement.className = "comment";
       liElement.innerHTML = `
           <div class="comment-header">
-            <div>Варвара Н.</div>
+            <div>${addNameInput.value}</div>
             <div>${getCurrentTime()}</div>
           </div>
           <div class="comment-body">
             <div class="comment-text">
-              Мне нравится как оформлена эта страница! ❤
+            ${addFormComment.value}
             </div>
           </div>
           <div class="comment-footer">
             <div class="likes">
               <span class="likes-counter">0</span>
-              <button class="like-button -active-like"></button>
+              <button class="like-button"></button>
             </div>
           </div>`;
+      addNameInput.value = "";
+      addFormComment.value = "";
       commentsElement.appendChild(liElement);
     });
 
