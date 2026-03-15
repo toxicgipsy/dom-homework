@@ -8,42 +8,7 @@
 
   <body>
     <div class="container">
-      <ul class="comments">
-        <li class="comment">
-          <div class="comment-header">
-            <div>Глеб Фокин</div>
-            <div>12.02.22 12:18</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Это будет первый комментарий на этой странице
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">3</span>
-              <button class="like-button"></button>
-            </div>
-          </div>
-        </li>
-        <li class="comment">
-          <div class="comment-header">
-            <div>Варвара Н.</div>
-            <div>13.02.22 19:22</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Мне нравится как оформлена эта страница! ❤
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">75</span>
-              <button class="like-button -active-like"></button>
-            </div>
-          </div>
-        </li>
-      </ul>
+      <ul class="comments"></ul>
       <div class="add-form">
         <input
           type="text"
@@ -65,10 +30,13 @@
 
   <script>
     "use strict";
+    // Получаем ссылки на необходимые элементы страницы
     const commentsElement = document.querySelector(".comments");
     const addNameInput = document.querySelector(".add-form-name");
     const addFormComment = document.querySelector(".add-form-text");
     const addformButton = document.querySelector(".add-form-button");
+
+    // Функция для получения текущей даты и времени в нужном формате
     const getCurrentTime = () => {
       return new Intl.DateTimeFormat("ru-RU", {
         day: "2-digit",
@@ -79,6 +47,73 @@
       }).format(new Date());
     };
 
+    // Массив с комментариями, который будет использоваться для отрисовки комментариев на странице
+    const comments = [
+      {
+        name: "Глеб Фокин",
+        text: "Это будет первый комментарий на этой странице",
+        date: "12.02.22 12:18",
+        likes: 3,
+        isLiked: false,
+      },
+      {
+        name: "Варвара Н.",
+        text: "Мне нравится как оформлена эта страница! ❤",
+        date: "13.02.22 19:22",
+        likes: 75,
+        isLiked: true,
+      },
+    ];
+
+    // Функция для отрисовки комментариев на странице
+    const renderComments = (comments) => {
+      commentsElement.innerHTML = comments
+        .map((comment, index) => {
+          return `
+        <li class="comment" data-index="${index}">
+          <div class="comment-header">
+            <div>${comment.name}</div>
+            <div>${comment.date}</div>
+          </div>
+          <div class="comment-body">
+            <div class="comment-text">
+            ${comment.text}
+            </div>
+          </div>
+          <div class="comment-footer">
+            <div class="likes">
+              <span class="likes-counter">${comment.likes}</span>
+              <button class="like-button ${comment.isLiked ? "-active-like" : ""}"></button>
+            </div>
+          </div>
+        </li>`;
+        })
+        .join("");
+    };
+
+    // Обработчик клика по кнопке лайка (работает для старых и новых комментариев)
+    const handleLikeClick = () => {
+      commentsElement.addEventListener("click", (event) => {
+        const likeButton = event.target.closest(".like-button");
+        if (!likeButton) return;
+
+        const commentElem = likeButton.closest(".comment");
+        const index = Number(commentElem?.dataset.index);
+        if (!Number.isFinite(index)) return;
+
+        const comment = comments[index];
+        if (!comment) return;
+
+        comment.isLiked = !comment.isLiked;
+        comment.likes = Math.max(0, comment.likes + (comment.isLiked ? 1 : -1));
+
+        likeButton.classList.toggle("-active-like", comment.isLiked);
+        const likesCounter = commentElem.querySelector(".likes-counter");
+        if (likesCounter) likesCounter.textContent = String(comment.likes);
+      });
+    };
+
+    // Обработчик события для кнопки "Написать"
     addformButton.addEventListener("click", () => {
       addNameInput.classList.remove("error");
       addFormComment.classList.remove("error");
@@ -88,29 +123,21 @@
         return;
       }
 
-      const liElement = document.createElement("li");
-      liElement.className = "comment";
-      liElement.innerHTML = `
-          <div class="comment-header">
-            <div>${addNameInput.value}</div>
-            <div>${getCurrentTime()}</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-            ${addFormComment.value}
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">0</span>
-              <button class="like-button"></button>
-            </div>
-          </div>`;
+      comments.push({
+        name: addNameInput.value,
+        text: addFormComment.value,
+        date: getCurrentTime(),
+        likes: 0,
+        isLiked: false,
+      });
+
+      renderComments(comments);
+      handleLikeClick();
       addNameInput.value = "";
       addFormComment.value = "";
-      commentsElement.appendChild(liElement);
     });
 
-    console.log("It works!");
+    // Вызываем функцию отрисовки комментариев при загрузке страницы
+    renderComments(comments);
   </script>
 </html>
