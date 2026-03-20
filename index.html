@@ -67,7 +67,6 @@
 
     // Обработчик клика по кнопке лайка (работает для старых и новых комментариев)
     const handleLikeClick = () => {
-      
       commentsElement.addEventListener("click", (event) => {
         const likeButton = event.target.closest(".like-button");
         if (!likeButton) return;
@@ -126,8 +125,6 @@
       }
 
       comments.push({
-        name: addNameInput.value,
-        text: addFormComment.value,
         date: getCurrentTime(),
         likes: 0,
         isLiked: false,
