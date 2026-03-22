@@ -47,6 +47,15 @@
       }).format(new Date());
     };
 
+    const escapeHtml = (unsafe) => {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    };
+
     // Массив с комментариями, который будет использоваться для отрисовки комментариев на странице
     const comments = [
       {
@@ -66,25 +75,42 @@
     ];
 
     // Обработчик клика по кнопке лайка (работает для старых и новых комментариев)
-    const handleLikeClick = () => {
-      commentsElement.addEventListener("click", (event) => {
-        const likeButton = event.target.closest(".like-button");
-        if (!likeButton) return;
+    const initLikeButtons = () => {
+      const likeButtons = document.querySelectorAll(".like-button");
 
-        const commentElem = likeButton.closest(".comment");
-        const index = Number(commentElem?.dataset.index);
-        if (!Number.isFinite(index)) return;
+      for (const likeButton of likeButtons) {
+        likeButton.addEventListener("click", (event) => {
+          event.stopPropagation();
 
-        const comment = comments[index];
-        if (!comment) return;
+          const commentElem = likeButton.closest(".comment");
+          const index = commentElem.dataset.index;
+          const comment = comments[index];
 
-        comment.isLiked = !comment.isLiked;
-        comment.likes = Math.max(0, comment.likes + (comment.isLiked ? 1 : -1));
+          comment.isLiked = !comment.isLiked;
+          comment.likes = Math.max(
+            0,
+            comment.likes + (comment.isLiked ? 1 : -1),
+          );
 
-        likeButton.classList.toggle("-active-like", comment.isLiked);
-        const likesCounter = commentElem.querySelector(".likes-counter");
-        if (likesCounter) likesCounter.textContent = String(comment.likes);
-      });
+          renderComments(comments);
+          initLikeButtons();
+          initCommentClick();
+        });
+      }
+    };
+
+    // Обработчик клика по комментарию для отображения его текста в алерте
+    const initCommentClick = () => {
+      const commentElements = document.querySelectorAll(".comment");
+
+      for (const commentElement of commentElements) {
+        commentElement.addEventListener("click", () => {
+          const index = commentElement.dataset.index;
+          const comment = comments[index];
+
+          addFormComment.value = `> ${comment.name}: \n ${comment.text} \n\n`;
+        });
+      }
     };
 
     // Функция для отрисовки комментариев на странице
@@ -109,7 +135,6 @@
             </div>
           </div>
         </li>`;
-          handleLikeClick();
         })
         .join("");
     };
@@ -124,19 +149,28 @@
         return;
       }
 
+      const name = escapeHtml(addNameInput.value);
+      const text = escapeHtml(addFormComment.value);
+
       comments.push({
+        name,
+        text,
         date: getCurrentTime(),
         likes: 0,
         isLiked: false,
       });
 
       renderComments(comments);
+      initLikeButtons();
+      initCommentClick();
+
       addNameInput.value = "";
       addFormComment.value = "";
     });
 
-    // Вызываем функцию отрисовки комментариев при загрузке страницы
+    // Инициализация страницы с комментариями и обработчиками событий
     renderComments(comments);
-    handleLikeClick();
+    initLikeButtons();
+    initCommentClick();
   </script>
 </html>
