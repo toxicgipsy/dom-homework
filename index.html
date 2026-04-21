@@ -9,6 +9,8 @@
   <body>
     <div class="container">
       <ul class="comments"></ul>
+
+      <div class="loading-add-comment"></div>
       <div class="add-form">
         <input
           type="text"
@@ -32,6 +34,8 @@
     "use strict";
     // Получаем ссылки на необходимые элементы страницы
     const commentsElement = document.querySelector(".comments");
+    const loadingAddCommentEl = document.querySelector(".loading-add-comment");
+    const addFormElement = document.querySelector(".add-form");
     const addNameInput = document.querySelector(".add-form-name");
     const addFormComment = document.querySelector(".add-form-text");
     const addformButton = document.querySelector(".add-form-button");
@@ -164,6 +168,9 @@
       addNameInput.value = "";
       addFormComment.value = "";
 
+      addFormElement.style.display = "none";
+      loadingAddCommentEl.innerHTML = "Комментарий отправляется...";
+
       // Добавляем новый комментарий в массив комментариев
       fetch("https://wedev-api.sky.pro/api/v1/aman/comments", {
         method: "POST",
@@ -174,6 +181,8 @@
           return response.json();
         })
         .then((data) => {
+          addFormElement.style.display = "flex";
+          loadingAddCommentEl.style.display = "none";
           console.log(data);
           comments.length = 0; // Очистка массива комментариев перед загрузкой новых данных
           fetchAndRenderComments();
@@ -184,6 +193,7 @@
       initCommentClick();
     });
 
+    commentsElement.innerHTML = "<li>Комментарии загружаются...<li>";
     // Инициализация страницы с комментариями и обработчиками событий
     fetchAndRenderComments();
     initLikeButtons();
