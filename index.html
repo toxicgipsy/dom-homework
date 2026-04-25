@@ -40,15 +40,15 @@
     const addFormComment = document.querySelector(".add-form-text");
     const addformButton = document.querySelector(".add-form-button");
 
-    // Функция для получения текущей даты и времени в нужном формате
-    const getCurrentTime = () => {
+    // Функция для форматирования даты
+    const formatDate = (date) => {
       return new Intl.DateTimeFormat("ru-RU", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      }).format(new Date());
+      }).format(date);
     };
 
     const escapeHtml = (unsafe) => {
@@ -60,10 +60,10 @@
         .replace(/'/g, "&#039;");
     };
 
-    // Массив с комментариями, который будет использоваться для отрисовки комментариев на странице
+    // Массив с комментариями, который будет использоваться для отрисовки комментариев
     const comments = [];
 
-    // Обработчик клика по кнопке лайка (работает для старых и новых комментариев)
+    // Обработчик клика по кнопке лайка
     const initLikeButtons = () => {
       const likeButtons = document.querySelectorAll(".like-button");
 
@@ -126,7 +126,7 @@
         <li class="comment" data-index="${index}">
           <div class="comment-header">
             <div>${escapeHtml(comment.author.name)}</div>
-            <div>${comment.date}</div>
+            <div>${formatDate(new Date(comment.date))}</div>
           </div>
           <div class="comment-body">
             <div class="comment-text">
@@ -177,26 +177,21 @@
         body: JSON.stringify(newComment),
       })
         .then((response) => {
-          console.log(response);
           return response.json();
         })
         .then((data) => {
-          addFormElement.style.display = "flex";
-          loadingAddCommentEl.style.display = "none";
-          console.log(data);
           comments.length = 0; // Очистка массива комментариев перед загрузкой новых данных
-          fetchAndRenderComments();
+          return fetchAndRenderComments();
+        })
+        .then(() => {
+          loadingAddCommentEl.style.display = "none";
+          addFormElement.style.display = "flex";
         });
-
-      // Сохраняем новый комментарий на сервере
-      renderComments(comments);
-      initCommentClick();
     });
 
-    commentsElement.innerHTML = "<li>Комментарии загружаются...<li>";
-    // Инициализация страницы с комментариями и обработчиками событий
+    commentsElement.innerHTML = "<li>Комментарии загружаются...</li>";
+    commentsElement.style.display = "flex";
+    // Рендер комментариев
     fetchAndRenderComments();
-    initLikeButtons();
-    initCommentClick();
   </script>
 </html>
