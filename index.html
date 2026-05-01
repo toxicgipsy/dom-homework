@@ -108,6 +108,10 @@
         method: "GET",
       })
         .then((response) => {
+          if (response.status === 500) {
+            alert("Сервер сломался, попробуй позже");
+            throw new Error("Server error");
+          }
           return response.json();
         })
         .then((data) => {
@@ -115,6 +119,12 @@
           renderComments(comments);
           initCommentClick();
           initLikeButtons();
+        })
+        .catch((error) => {
+          if (error.message === "Server error") {
+            return;
+          }
+          alert("Кажется, у вас сломался интернет, попробуйте позже");
         });
     };
 
@@ -149,12 +159,6 @@
       addNameInput.classList.remove("error");
       addFormComment.classList.remove("error");
 
-      if (addNameInput.value === "" || addFormComment.value === "") {
-        addNameInput.classList.add("error");
-        addFormComment.classList.add("error");
-        return;
-      }
-
       // Получаем имя и текст комментария из полей ввода
       const name = addNameInput.value;
       const text = addFormComment.value;
@@ -165,25 +169,64 @@
         name,
       };
 
-      addNameInput.value = "";
-      addFormComment.value = "";
+      // Функция для проверки длины имени и текста комментария
+      const checkFormLength = (name, text) => {
+        if (name.length < 3 || text.length < 3) {
+          addNameInput.classList.add("error");
+          addFormComment.classList.add("error");
+          alert("Имя и комментарий должны быть не короче 3 символов");
+          return false;
+        }
+        return true;
+      };
 
+      // Проверяем длину имени и текста комментария, если они меньше 3 символов, выводим предупреждение и не отправляем комментарий
+      if (!checkFormLength(name, text)) {
+        return;
+      }
+
+      // Скрываем форму добавления комментария и отображаем сообщение о загрузке
       addFormElement.style.display = "none";
       loadingAddCommentEl.innerHTML = "Комментарий отправляется...";
 
+      const host = "https://wedev-api.sky.pro/api/v1/aman";
+
       // Добавляем новый комментарий в массив комментариев
-      fetch("https://wedev-api.sky.pro/api/v1/aman/comments", {
+      return fetch(host + "/comments", {
         method: "POST",
-        body: JSON.stringify(newComment),
+        body: JSON.stringify({
+          text,
+          name,
+          forceError: false,
+        }),
       })
         .then((response) => {
+          if (response.status === 400) {
+            alert("Имя и комментарий должны быть не короче 3 символов");
+            throw new Error("Validation error");
+          }
+          if (response.status === 500) {
+            alert("Сервер сломался, попробуй позже");
+            throw new Error("Server error");
+          }
           return response.json();
         })
         .then((data) => {
+          addNameInput.value = "";
+          addFormComment.value = "";
           comments.length = 0; // Очистка массива комментариев перед загрузкой новых данных
           return fetchAndRenderComments();
         })
-        .then(() => {
+        .catch((error) => {
+          if (
+            error.message === "Validation error" ||
+            error.message === "Server error"
+          ) {
+            return;
+          }
+          alert("Кажется, у вас сломался интернет, попробуйте позже");
+        })
+        .finally(() => {
           loadingAddCommentEl.style.display = "none";
           addFormElement.style.display = "flex";
         });
