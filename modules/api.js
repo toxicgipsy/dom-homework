@@ -1,19 +1,43 @@
+import { comments } from "./state.js";
+import { renderComments } from "./renderComments.js";
+import { initCommentClick, initLikeButtons } from "./listeners.js";
 import {
-  commentsElement,
-  loadingAddCommentEl,
-  addFormElement,
   addNameInput,
   addFormComment,
-  addformButton,
+  loadingAddCommentEl,
+  addFormElement,
 } from "./variables.js";
-import { comments } from "./comments.js";
-import { fetchAndRenderComments } from "./fetchAndRenderComments.js";
-
 
 const host = "https://wedev-api.sky.pro/api/v1/aman";
 
+// Функция для получения комментариев с сервера и их отрисовки на странице
+export const fetchAndRenderComments = () => {
+  return fetch(host + "/comments", {
+    method: "GET",
+  })
+    .then((response) => {
+      if (response.status === 500) {
+        alert("Сервер сломался, попробуй позже");
+        throw new Error("Server error");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      comments.push(...data.comments);
+      renderComments(comments);
+      initCommentClick();
+      initLikeButtons();
+    })
+    .catch((error) => {
+      if (error.message === "Server error") {
+        return;
+      }
+      alert("Кажется, у вас сломался интернет, попробуйте позже");
+    });
+};
+
 // Добавляем новый комментарий в массив комментариев
-export const addComment = () => {
+export const addComment = (text, name) => {
   return fetch(host + "/comments", {
     method: "POST",
     body: JSON.stringify({

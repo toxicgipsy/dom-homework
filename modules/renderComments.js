@@ -1,7 +1,7 @@
 import { escapeHtml } from "./escapeHtml.js";
-import { formatDate } from "./formatDate.js";
 import { commentsElement } from "./variables.js";
-import { comments } from "./comments.js";
+import { formatDate } from "./formatDate.js";
+import { comments } from "./state.js";
 
 // Функция для отрисовки комментариев на странице
 export const renderComments = (comments) => {
