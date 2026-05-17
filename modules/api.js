@@ -8,11 +8,27 @@ import {
   addFormElement,
 } from "./variables.js";
 
-const host = "https://wedev-api.sky.pro/api/v1/aman";
+const host = "https://wedev-api.sky.pro/api/v2/aman";
+const commentsURL = host + "/comments";
+const commentsRegistration = "https://wedev-api.sky.pro/api/user";
+const commentsLogin = commentsRegistration + "/login";
+
+export let token = localStorage.getItem("token");
+export let userName = localStorage.getItem("userName");
+
+export const setToken = (newToken) => {
+  token = newToken;
+  localStorage.setItem("token", newToken);
+};
+
+export const setUserName = (newUserName) => {
+  userName = newUserName;
+  localStorage.setItem("userName", newUserName);
+};
 
 // Функция для получения комментариев с сервера и их отрисовки на странице
 export const fetchAndRenderComments = () => {
-  return fetch(host + "/comments", {
+  return fetch(commentsURL, {
     method: "GET",
   })
     .then((response) => {
@@ -23,6 +39,7 @@ export const fetchAndRenderComments = () => {
       return response.json();
     })
     .then((data) => {
+      comments.length = 0;
       comments.push(...data.comments);
       renderComments(comments);
       initCommentClick();
@@ -37,12 +54,14 @@ export const fetchAndRenderComments = () => {
 };
 
 // Добавляем новый комментарий в массив комментариев
-export const addComment = (text, name) => {
-  return fetch(host + "/comments", {
+export const addComment = (text) => {
+  return fetch(commentsURL, {
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({
       text: addFormComment.value,
-      name: addNameInput.value,
       forceError: false,
     }),
   })
@@ -73,7 +92,51 @@ export const addComment = (text, name) => {
       alert("Кажется, у вас сломался интернет, попробуйте позже");
     })
     .finally(() => {
+      loadingAddCommentEl.innerHTML = "";
       loadingAddCommentEl.style.display = "none";
       addFormElement.style.display = "flex";
+    });
+};
+
+export const registration = ({ login, name, password }) => {
+  return fetch(commentsRegistration, {
+    method: "POST",
+    body: JSON.stringify({
+      login,
+      name,
+      password,
+    }),
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      if (response.status === 400) {
+        throw new Error("Пользователь с таким логином уже существует");
+      }
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+};
+
+export const login = ({ login, password }) => {
+  return fetch(commentsLogin, {
+    method: "POST",
+    body: JSON.stringify({
+      login,
+      password,
+    }),
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      if (response.status === 400) {
+        throw new Error("Неверный логин или пароль");
+      }
+    })
+    .catch((error) => {
+      alert(error.message);
     });
 };
